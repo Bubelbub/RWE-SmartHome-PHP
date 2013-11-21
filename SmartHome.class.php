@@ -22,7 +22,7 @@ class SmartHome
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xsi:type="LoginRequest"
 		RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
-		Version="1.50"
+		Version="1.60"
 		UserName="'.$this->username.'"
 		Password="'.base64_encode(hash('sha256', utf8_encode($this->password), true)).'"
 		/>';
@@ -38,8 +38,9 @@ class SmartHome
 		curl_setopt($ch, CURLOPT_URL, 'https://'.$this->host.'/cmd');
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_POST, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_SSLVERSION, 3);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 		$output = curl_exec($ch);
 		$info = curl_getinfo($ch);
@@ -55,7 +56,7 @@ class SmartHome
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xsi:type="ProbeShcRequest"
 		RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
-		Version="1.50"
+		Version="1.60"
 		SessionId="'.$this->sessionId.'"
 		/>';
 		$response = $this->doRequest($data);
@@ -69,7 +70,7 @@ class SmartHome
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xsi:type="GetAllLogicalDeviceStatesRequest"
 		RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
-		Version="1.50"
+		Version="1.60"
 		SessionId="'.$this->sessionId.'"
 		BasedOnConfigVersion="'.$this->configurationVersion.'"
 		/>';
@@ -84,7 +85,7 @@ class SmartHome
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xsi:type="GetEntitiesRequest"
 		RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
-		Version="1.50"
+		Version="1.60"
 		SessionId="'.$this->sessionId.'"
 		BasedOnConfigVersion="'.$this->configurationVersion.'"
 		EntityType="Configuration"
@@ -97,44 +98,48 @@ class SmartHome
 	function switchActuator($logicalDeviceId, $on)
 	{
 		$data = '<BaseRequest
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xsi:type="SetActuatorStatesRequest"
-		RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
-		Version="1.50"
-		SessionId="'.$this->sessionId.'"
-		BasedOnConfigVersion="'.$this->configurationVersion.'"
-		>
-		    <ActuatorStates>
-			<LogicalDeviceState xsi:type="SwitchActuatorState">
-			    <LogicalDeviceId>'.$logicalDeviceId.'</LogicalDeviceId>
-			    <IsOn>'.($on?'true':'false').'</IsOn>
-			</LogicalDeviceState>
-		    </ActuatorStates>
-		</BaseRequest>
-		';
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"        
+        xsi:type="SetActuatorStatesRequest"
+        Version="1.60"
+        RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
+        
+        SessionId="'.$this->sessionId.'"
+        BasedOnConfigVersion="'.$this->configurationVersion.'"
+        >
+            <ActuatorStates>
+            <LogicalDeviceState xsi:type="SwitchActuatorState"
+                LID="'.$logicalDeviceId.'"
+                IsOn="'.($on?'true':'false').'"    
+            />
+            
+            </ActuatorStates>
+        </BaseRequest>
+        ';
 		$response = $this->doRequest($data);
 	}
 
 	function setPointTemperature($logicalDeviceId, $pointTemperature)
 	{
 		$data = '<BaseRequest
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xsi:type="SetActuatorStatesRequest"
-		RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
-		Version="1.50"
-		SessionId="'.$this->sessionId.'"
-		BasedOnConfigVersion="'.$this->configurationVersion.'"
-		>
-		    <ActuatorStates>
-			<LogicalDeviceState xsi:type="RoomTemperatureActuatorState">
-			    <LogicalDeviceId>'.$logicalDeviceId.'</LogicalDeviceId>
-			    <PointTemperature>'.$pointTemperature.'</PointTemperature>
-			</LogicalDeviceState>
-		    </ActuatorStates>
-		</BaseRequest>
-		';
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"        
+        xsi:type="SetActuatorStatesRequest"
+        Version="1.60"
+        RequestId="33300000-2200-1000-0000-'.substr(md5(uniqid()), 0, 12).'"
+        
+        SessionId="'.$this->sessionId.'"
+        BasedOnConfigVersion="'.$this->configurationVersion.'"
+        >
+            <ActuatorStates>
+            <LogicalDeviceState xsi:type="RoomTemperatureActuatorState"
+                LID="'.$logicalDeviceId.'"
+                PtTmp="'.$pointTemperature.'"                
+               OpnMd="Auto"
+                WRAc="False"
+            />
+            
+            </ActuatorStates>
+        </BaseRequest>
+        ';
 		$response = $this->doRequest($data);
 	}
 }
