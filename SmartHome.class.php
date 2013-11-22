@@ -3,9 +3,9 @@
 /**
  * Class SmartHome
  *
- * @author ansgr <http://www.rwe-smarthome-forum.de/user-ansgr>
- * @author donenik <http://www.rwe-smarthome-forum.de/user-donenik>
- * @author Bubelbub <bubelbub@gmail.com>
+ * @author ansgr <http://www.rwe-smarthome-forum.de/user-ansgr> / First version
+ * @author donenik <http://www.rwe-smarthome-forum.de/user-donenik> / Second version
+ * @author Bubelbub <bubelbub@gmail.com> / Latest version
  */
 class SmartHome
 {
@@ -213,6 +213,40 @@ class SmartHome
                 WRAc="False"
             />
             
+            </ActuatorStates>
+        </BaseRequest>
+        ';
+		$this->response = $this->doRequest($data);
+	}
+
+	/**
+	 * Set the state of an logical device
+	 *
+	 * @param string $logicalDeviceId the logical device id
+	 * @param boolean $pointTemperature the new state of the device / true = on, false = off
+	 */
+	function setLogicalDeviceState($logicalDeviceId, $on)
+	{
+		$data = '<BaseRequest
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"        
+        xsi:type="SetActuatorStatesRequest"
+        Version="' . $this->version . '"
+        RequestId="33300000-2200-1000-0000-' . substr(md5(uniqid()), 0, 12) . '"
+        
+        SessionId="' . $this->sessionId . '"
+        BasedOnConfigVersion="' . $this->configurationVersion . '"
+        >
+            <ActuatorStates>
+                <LogicalDeviceState xsi:type="GenericDeviceState" 
+                    LID="' . $logicalDeviceId . '"
+                    >
+                    <Ppts>
+                        <Ppt xsi:type="BooleanProperty" 
+                            Name="Value" 
+                            Value="' . ($on ? 'true' : 'false') . '" 
+                        />
+                    </Ppts>
+                </LogicalDeviceState>
             </ActuatorStates>
         </BaseRequest>
         ';
