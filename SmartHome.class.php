@@ -87,9 +87,10 @@ class SmartHome
 	public function login()
 	{
 		$data = array('UserName' => $this->config['Username'], 'Password' => base64_encode(hash('sha256', utf8_encode($this->config['Password']), true)));
-		$this->doRequest('LoginRequest', $data);
-		$this->cache['sessionID'] = (string) $this->getResponse()->attributes()->SessionId;
-		$this->cache['configurationVersion'] = (string) $this->getResponse()->attributes()->CurrentConfigurationVersion;
+		$response = $this->doRequest('LoginRequest', $data);
+		print_r($this->cache);
+		$this->cache['sessionID'] = (string) $response->attributes()->SessionId;
+		$this->cache['configurationVersion'] = (string) $response->attributes()->CurrentConfigurationVersion;
 	}
 
 	/**
@@ -108,19 +109,19 @@ class SmartHome
 		{
 			$preparedData['SessionId'] = $this->cache['sessionID'];
 		}
+		if(preg_match('#LoginRequest#i', $type))
+		{
+			unset($preparedData['SessionId']);
+		}
 		if(array_key_exists('configurationVersion', $this->cache))
 		{
 			$preparedData['BasedOnConfigVersion'] = $this->cache['configurationVersion'];
 		}
-		$data = is_array($data) ? array_merge($preparedData, $data) : $preparedData;
-		if(preg_match('#LoginRequest#i', $type))
-		{
-			unset($data['SessionId']);
-		}
+		$preparedData = is_array($data) ? array_merge($preparedData, $data) : $preparedData;
 
 		$xml = new SimpleXMLElement('<BaseRequest xmlns:xsd="http://www.w3.org/2001/XMLSchema">' . $content . '</BaseRequest>');
 		$xml->addAttribute('xsi:type', $type, 'http://www.w3.org/2001/XMLSchema-instance');
-		foreach($data as $attribute => $value)
+		foreach($preparedData as $attribute => $value)
 		{
 			$xml->addAttribute($attribute, $value);
 		}
@@ -136,13 +137,13 @@ class SmartHome
 		$this->setResponse(curl_exec($ch));
 		curl_close($ch);
 
-		$type = (string) $this->getResponse()->attributes('xsi', true)->type;
-		if($type === 'GenericSHCErrorResponse' || $type === 'AuthenticationErrorResponse')
+		$responseType = (string) $this->getResponse()->attributes('xsi', true)->type;
+		if($responseType === 'GenericSHCErrorResponse' || $responseType === 'AuthenticationErrorResponse')
 		{
 			$this->login();
 			return $this->doRequest($type, $data);
 		}
-		else if($type === 'VersionMismatchErrorResponse')
+		else if($responseType === 'VersionMismatchErrorResponse')
 		{
 			$this->cache['version'] = (string) $this->getResponse()->attributes()->ExpectedVersion;
 		}
