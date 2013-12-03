@@ -172,13 +172,24 @@ class SmartHome
 	}
 
 	/**
+	 * Get all logical devices with their state(s)
+	 *
+	 * @return SimpleXMLElement[] all logical devices with their state(s)
+	 */
+	public function sendNotificationRequest($notificationType = 'DeviceStateChanges', $action = 'Subscribe')
+	{
+		return $this->doRequest('NotificationRequest', array('NotificationType' => $notificationType, 'Action' => $action));
+	}
+
+	/**
 	 * Get the configuration of the central control unit (shc)
 	 *
-	 * @return SimpleXMLElement the configuration of the central control unit (shc)
+	 * @param string $entityType the entity type (examples: Configuration)
+	 * @return SimpleXMLElement the configuration of the central control unit (shc) (examples: LogicalDevices, Locations, Profiles)
 	 */
-	public function getConfiguration()
+	public function getConfiguration($entityType = 'Configuration')
 	{
-		return $this->doRequest('GetEntitiesRequest', array('EntityType' => 'Configuration'));
+		return $this->doRequest('GetEntitiesRequest', array('EntityType' => $entityType));
 	}
 
 	/**
